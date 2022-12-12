@@ -1,0 +1,23 @@
+{% extends "blog/base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+	<style type="text/css">
+		#cke_id_content{
+			width: 100% !important;
+		}
+	</style>
+
+	<div class="content-selection">
+		<form method="POST">
+			{% csrf_token %}
+			<fieldset>
+				<legend class="border-bottom mb-4">Blog Post</legend>
+				{{ form.media }}
+				{{ form|crispy }}
+			</fieldset>
+			<div class="form-group">
+				<button class="btn btn-outline-info" type="submit">Post</button>
+			</div>
+		</form>
+	</div>
+{% endblock content %}

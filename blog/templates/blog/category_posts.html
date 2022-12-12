@@ -1,0 +1,75 @@
+{% extends "blog/base.html" %}
+{% load post_tags %}
+{% block content %}
+  <style type="text/css">
+    .followbtn{
+      font-size: 15px;
+      background: none !important;
+      border-radius: 5px;
+    }
+    #categoryHeader{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  </style>
+
+  <div id='categoryHeader'>
+    <h1 class="mb-3">{{ view.kwargs.category|title|deslugify }}
+      <sup><small class="text-muted">[Total posts: {{page_obj.paginator.count}}]</small></sup>
+    </h1>
+    <!-- {{posts.first.category.get_followers}} -->
+    {% if posts %}
+      {% if user.is_authenticated %}
+        <form method="POST" action="{% url 'follow_category' %}">
+          {% csrf_token %}
+          <div class="form-group">
+            {% if user.username not in posts.first.category.get_followers %}
+            <button class="followbtn mt-1 mb-1 bi bi-bookmark" type="submit" name="category_follow" value="{{view.kwargs.category|deslugify}}" style="background-color: #5f788a; border-color: #5f788a;">Follow</button>
+            {% else %}
+            <button class="followbtn mt-1 mb-1 bi-bookmark-heart-fill" type="submit" name="category_unfollow" value="{{view.kwargs.category|deslugify}}" style="background-color: #5f788a; border-color: #5f788a;">Unfollow</button>
+            {% endif %}
+          </div>
+        </form>
+      {% endif %}
+    {% endif %}
+  </div>
+
+	{% for post in posts %}
+	<article class="media content-section">
+		<img class="rounded-circle article-img" src="{{post.author.profile.image.url}}">
+		<div class="media-body">
+			<div class="article-metadata">
+				<a class="mr-2" href="{% url 'user-posts' post.author.username %}">{{ post.author }}</a>
+				<small class="text-muted">{{ post.date_posted }}</small>
+        {% include "blog/voting_snippet.html" %}
+        <h2><a class="article-title" href="{% url 'post-detail' post.id %}">{{ post.title }}</a></h2>
+			</div>
+			<p class="article-content">{{ post.content|safe|truncatewords:50 }}<a href="{% url 'post-detail' post.id %}">Read more</a></p>
+      <a class=" mr-2 text-muted" href="{% url 'post-detail' post.id %}"><i class="mr-1 bi bi-chat"></i>{{ post.comment_count }} Comments</a>
+		</div>
+	</article>
+	{% endfor %}
+    {% if is_paginated %}
+
+      {% if page_obj.has_previous %}
+        <a class="btn btn-outline-info mb-4" href="?page=1">First</a>
+        <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <a class="btn btn-info mb-4" href="?page={{ num }}">{{ num }}</a>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <a class="btn btn-outline-info mb-4" href="?page={{ num }}">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.next_page_number }}">Next</a>
+        <a class="btn btn-outline-info mb-4" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+      {% endif %}
+
+    {% endif %}
+{% endblock content %}
+

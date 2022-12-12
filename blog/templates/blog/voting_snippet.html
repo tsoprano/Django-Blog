@@ -1,0 +1,40 @@
+{% load post_tags %}
+<style type="text/css">
+.postvote{
+		border: none !important;
+		background: none !important;
+		font-size: 25px;
+	}
+.vote {
+  border: none !important;
+  background: none !important;
+}
+</style>
+{% if user.is_authenticated %}
+  <div style="display: flex;">
+    <form method="POST" action="{% url 'upvote_post' post.id %}">
+      {% csrf_token %}
+      <div class="form-group">
+        {% if user in post.downVotes.all or user not in post.upVotes.all %}
+        <button class="vote mt-1 mb-1 bi-arrow-up-circle" type="submit" name="post_id_upvote" value="{{post.id}}" style="background-color: #5f788a; border-color: #5f788a;"></button>
+        {% else %}
+        <button class="vote mt-1 mb-1 bi-arrow-up-circle-fill" style="color: red;" type="submit" name="post_id_upvote" value="{{post.id}}" style="background-color: #5f788a; border-color: #5f788a;"></button>
+        {% endif %}
+      </div>
+    </form>
+    <div class="ml-2 mr-2 pt-2"><strong>{{post.upVotes.count|subtract:post.downVotes.count }}</strong></div>
+
+    <form method="POST" action="{% url 'downvote_post' post.id %}">
+      {% csrf_token %}
+      <div class="form-group">
+        {% if user in post.upVotes.all or user not in post.downVotes.all %}
+        <button class="vote mt-1 mb-1 bi-arrow-down-circle" type="submit" name="post_id_downvote" value="{{post.id}}" style="background-color: #5f788a; border-color: #5f788a;"></button>
+        {% else %}
+        <button class="vote mt-1 mb-1 bi bi-arrow-down-circle-fill" style="color: blue;" type="submit" name="post_id_downvote" value="{{post.id}}" style="background-color: #5f788a; border-color: #5f788a;"></button>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+{% else %}
+    <p>{{post.upVotes.count|subtract:post.downVotes.count}} Votes</p>
+{% endif %}

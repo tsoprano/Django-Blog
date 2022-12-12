@@ -1,0 +1,125 @@
+{% extends "blog/base.html" %}
+<!-- {% load crispy_forms_tags %} -->
+{% block content %}
+	<style type="text/css">
+		.postvote{
+			border: none !important;
+			background: none !important;
+			font-size: 25px;
+		}
+		.vote {
+			border: none !important;
+			background: none !important;
+		}
+	</style>
+	<article class="media content-section">
+		<img class="rounded-circle article-img" src="{{object.author.profile.image.url}}">
+		<div class="media-body">
+			<div class="article-metadata">
+				<a class="mr-2" href="{% url 'user-posts' object.author.username %}">{{ object.author }}</a>
+				<small class="text-muted">{{ object.date_posted }}</small>
+				<div style="float: right;"><a class="mr-2" href="{% url 'category-posts' post.category|slugify %}"><i class="ml-5 bi bi-people"></i>{{post.category}}</a></div>
+				{% if object.author == user %}
+				<div>
+					<a class="btn btn-secondary btn-sm mt-1 mb-1" href="{% url 'post-update' object.id %}">Update</a>
+					<a class="btn btn-danger btn-sm mt-1 mb-1" href="{% url 'post-delete' object.id %}">Delete</a>	
+				</div>
+				{% endif %}
+				
+				{% if user.is_authenticated %}
+					<div style="display: flex;">
+						<form method="POST" action="{% url 'upvote_post' object.id %}">
+							{% csrf_token %}
+							<div class="form-group">
+								{% if upVoted == 0 or upVoted == -1 %}
+									<button class="postvote mt-1 mb-1 bi-arrow-up-circle" type="submit" name="post_id_upvote" value="{{object.id}}" style="background-color: #5f788a; border-color: #5f788a;"></button>
+								{% else %}
+									<button class="postvote mt-1 mb-1 bi-arrow-up-circle-fill" style="color: red;" type="submit" name="post_id_upvote" value="{{object.id}}" style="background-color: #5f788a; border-color: #5f788a;"></button>
+								{% endif %}
+							</div>
+						</form>
+						<div class="ml-2 mr-2 pt-3"><strong>{{totalVotes}}</strong></div>
+
+						<form method="POST" action="{% url 'downvote_post' object.id %}">
+							{% csrf_token %}
+							<div class="form-group">
+								{% if upVoted == 0 or upVoted == 1 %}
+									<button class="postvote mt-1 mb-1 bi-arrow-down-circle" type="submit" name="post_id_downvote" value="{{object.id}}" style="background-color: #5f788a; border-color: #5f788a;"></button>
+								{% else %}
+									<button class="postvote mt-1 mb-1 bi bi-arrow-down-circle-fill" style="color: blue;" type="submit" name="post_id_downvote" value="{{object.id}}" style="background-color: #5f788a; border-color: #5f788a;"></button>
+								{% endif %}
+							</div>
+						</form>
+					</div>
+				{% else %}
+					<p>{{totalVotes}} Votes</p>
+				{% endif %}
+				<h2 class="article-title">{{ object.title }}</h2>
+			</div>
+			<p class="article-content">{{ object.content|safe }}</p>
+		</div>
+	</article>
+
+	<div class="content-selection col-lg-13 mx-auto">
+		<form method="POST" action="{% url 'post-detail' object.id %}">
+			{% csrf_token %}
+			<fieldset>
+				{{form}}
+			</fieldset>
+			<div class="form-group">
+				<button class="btn btn-primary btn-block" type="submit" style="background-color: #5f788a; border-color: #5f788a;">Comment</button>
+			</div>
+		</form>
+	</div>
+	<legend class="border-bottom mb-4">{{comments.count}} Comments:</legend>
+	<article class="media content-section">
+		<ul class="list-unstyled">
+			{% for comment in comments %}
+				<li class="media">
+					<div class="media-body">
+						<a class="mr-2 mt-0 mb-1" href="{% url 'user-posts' comment.author.username %}">{{ comment.author }}</a>
+					<small class="text-muted">{{ comment.date_posted }}</small>
+
+					{% if user.is_authenticated %}
+						<div style="display: flex;">
+							<form method="POST" action="{% url 'upvote_post' object.id %}">
+								{% csrf_token %}
+								<div class="form-group">
+									{% if user in comment.downVotes.all or user not in comment.upVotes.all %}
+									<button class="vote mt-1 mb-1 bi-arrow-up-circle" type="submit" name="comment_id_upvote" value="{{comment.id}}" style="background-color: #5f788a; border-color: #5f788a;"></button>
+									{% else %}
+									<button class="vote mt-1 mb-1 bi-arrow-up-circle-fill" style="color: red;" type="submit" name="comment_id_upvote" value="{{comment.id}}" style="background-color: #5f788a; border-color: #5f788a;"></button>
+									{% endif %}
+								</div>
+							</form>
+							<div class="ml-2 mr-2 pt-2"><strong>{{comment.get_totalVotes}}</strong></div>
+
+							<form method="POST" action="{% url 'downvote_post' object.id %}">
+								{% csrf_token %}
+								<div class="form-group">
+									{% if user in comment.upVotes.all or user not in comment.downVotes.all %}
+									<button class="vote mt-1 mb-1 bi-arrow-down-circle" type="submit" name="comment_id_downvote" value="{{comment.id}}" style="background-color: #5f788a; border-color: #5f788a;"></button>
+									{% else %}
+									<button class="vote mt-1 mb-1 bi bi-arrow-down-circle-fill" style="color: blue;" type="submit" name="comment_id_downvote" value="{{comment.id}}" style="background-color: #5f788a; border-color: #5f788a;"></button>
+									{% endif %}
+								</div>
+							</form>
+						</div>
+					{% else %}
+						<p>{{comment.get_totalVotes}} Votes</p>
+					{% endif %}
+
+
+
+					<p>{{comment.content}}</p>
+					</div>
+				</li>
+			{% endfor %}
+		</ul>
+	</article>
+{% endblock content %}
+
+
+
+
+
